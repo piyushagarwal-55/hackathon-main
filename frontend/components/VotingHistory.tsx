@@ -146,7 +146,7 @@ export function VotingHistory({ compact = false, limit }: VotingHistoryProps = {
                 <span className="text-amber-400 font-semibold">{vote.weightedVotes.toFixed(2)}</span>
               </div>
               <a
-                href={`https://localhost:8545/tx/${vote.txHash}`}
+                href={`https://sepolia.arbiscan.io/tx/${vote.txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ml-auto text-emerald-400 hover:text-emerald-300 transition-colors text-xs font-semibold"

@@ -72,9 +72,24 @@ Add Arbitrum Sepolia network to MetaMask:
 ## 📚 Documentation
 
 - [Quick Start Guide](./QUICK_START.md) - 5-minute setup
+- [Vercel Deployment](./VERCEL_DEPLOYMENT.md) - Deploy to production
+- [Quick Deploy](./QUICK_DEPLOY.md) - Fast deployment steps
 - [Team Setup Guide](./SETUP_GUIDE_FOR_TEAM.md) - Detailed instructions
 - [Deployment Summary](./DEPLOYMENT_SUMMARY.md) - Contract details
 - [Troubleshooting](./TROUBLESHOOTING.md) - Common issues
+
+## 🌐 Deployment
+
+**Deploy to Vercel:**
+
+```bash
+cd frontend
+vercel
+```
+
+See [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) for complete deployment guide.
+
+**Quick Deploy:** See [QUICK_DEPLOY.md](./QUICK_DEPLOY.md) for 5-minute deployment.
 
 ## 🏗️ Project Structure
 

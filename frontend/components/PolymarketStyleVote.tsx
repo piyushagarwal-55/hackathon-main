@@ -805,12 +805,12 @@ export function PolymarketStyleVote({ pollAddress, options, question, onVoteSucc
               <div className="space-y-3">
                 <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/40">
                   <p className="text-slate-500 text-xs mb-1">Tokens Used</p>
-                  <p className="text-2xl font-bold text-amber-400">{formatUnits(existingVote[3], 18)} REP</p>
+                  <p className="text-2xl font-bold text-amber-400">{Number(existingVote[1])} REP</p>
                 </div>
                 <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/40">
                   <p className="text-slate-500 text-xs mb-1">Vote Weight</p>
                   <p className="text-2xl font-bold text-emerald-400">
-                    {Number(existingVote[2]) > 0 ? Number(existingVote[2]).toFixed(2) : formatUnits(existingVote[3], 18)}
+                    {Number(existingVote[2]) > 0 ? Number(existingVote[2]).toFixed(2) : Number(existingVote[1])}
                   </p>
                   <p className="text-xs text-slate-400 mt-1">
                     {Number(existingVote[2]) > 0 ? '(Weighted)' : '(Token amount)'}
@@ -839,19 +839,7 @@ export function PolymarketStyleVote({ pollAddress, options, question, onVoteSucc
                 </div>
               </div>
 
-              {/* Debug Info Panel - Remove after fixing */}
-              <div className="mb-4 p-3 bg-slate-900/60 border border-slate-700/40 rounded-lg text-xs font-mono">
-                <div className="text-slate-400 font-semibold mb-2">Debug Info:</div>
-                <div className="space-y-1 text-slate-500">
-                  <div>Balance: {tokenBalance ? formatUnits(tokenBalance, 18) : '0'} REP</div>
-                  <div>Allowance: {tokenAllowance ? formatUnits(tokenAllowance, 18) : '0'} REP</div>
-                  <div>Credits: {creditsSpent}</div>
-                  <div>Amount: {parseUnits(creditsSpent.toString(), 18).toString()}</div>
-                  <div>Has Voted: {hasVoted ? 'Yes' : 'No'}</div>
-                  <div>Approval Status: {isApproveSuccess ? 'Success' : isApprovePending ? 'Pending' : isApproveConfirming ? 'Confirming' : 'Not Started'}</div>
-                  <div>Vote Status: {isVoteSuccess ? 'Success' : isVotePending ? 'Pending' : isVoteConfirming ? 'Confirming' : 'Not Started'}</div>
-                </div>
-              </div>
+            
 
               {/* Voting Method Selection */}
               <div className="mb-4">
@@ -1024,27 +1012,7 @@ export function PolymarketStyleVote({ pollAddress, options, question, onVoteSucc
                 <TokenFaucet />
               </div>
 
-              {/* Two-Step Process Explanation */}
-              {!hasVoted && (
-                <div className="mb-3 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 text-xs">
-                  <div className="font-semibold text-blue-400 mb-1.5 flex items-center gap-1">
-                    <Info className="w-3.5 h-3.5" />
-                    <span>Voting requires 2 separate MetaMask transactions:</span>
-                  </div>
-                  <div className="text-slate-300 space-y-1 ml-4.5">
-                    <div className="flex items-center gap-2">
-                      <span className={tokenAllowance && tokenAllowance >= parseUnits(creditsSpent.toString(), 18) ? 'text-emerald-400' : 'text-amber-400'}>
-                        {tokenAllowance && tokenAllowance >= parseUnits(creditsSpent.toString(), 18) ? '✅' : '1️⃣'}
-                      </span>
-                      <span>Approve tokens (one-time permission)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-blue-400">2️⃣</span>
-                      <span>Cast vote (transfers tokens & records vote)</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+              
 
               {/* Debug: Refresh State Button */}
               <button
@@ -1061,42 +1029,9 @@ export function PolymarketStyleVote({ pollAddress, options, question, onVoteSucc
                 <span>Refresh State (if errors occur)</span>
               </button>
 
-              {/* Two-Step Process Explanation */}
-              {!hasVoted && (
-                <div className="mb-3 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 text-xs">
-                  <div className="font-semibold text-blue-400 mb-1">ℹ️ Two-Step Process:</div>
-                  <div className="text-slate-300 space-y-0.5">
-                    <div>1️⃣ <span className={tokenAllowance && tokenAllowance >= parseUnits(creditsSpent.toString(), 18) ? 'text-emerald-400' : 'text-slate-400'}>Approve tokens</span> (give permission)</div>
-                    <div>2️⃣ <span className="text-amber-400">Vote transaction</span> (actual vote)</div>
-                  </div>
-                </div>
-              )}
+              
 
-              {/* Status Indicator */}
-              <div className="mb-4 p-3 rounded-lg bg-slate-800/40 border border-slate-700/40 text-xs space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Balance:</span>
-                  <span className="text-emerald-400 font-mono">
-                    {tokenBalance ? formatUnits(tokenBalance, 18) : '0'} REP
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Allowance:</span>
-                  <span className={`font-mono ${tokenAllowance && tokenAllowance >= parseUnits(creditsSpent.toString(), 18) ? 'text-emerald-400' : 'text-amber-400'}`}>
-                    {tokenAllowance ? formatUnits(tokenAllowance, 18) : '0'} REP
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Required:</span>
-                  <span className="text-blue-400 font-mono">{creditsSpent} REP</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Voted:</span>
-                  <span className={hasVoted ? 'text-emerald-400' : 'text-slate-500'}>
-                    {hasVoted ? '✅ Yes' : '❌ No'}
-                  </span>
-                </div>
-              </div>
+           
 
               {/* Approval Button - Show when allowance is insufficient */}
               {!hasVoted && tokenAllowance !== undefined && tokenAllowance < parseUnits(creditsSpent.toString(), 18) && !isApproveSuccess && (
@@ -1202,18 +1137,6 @@ export function PolymarketStyleVote({ pollAddress, options, question, onVoteSucc
           <ClaimWinnings pollAddress={pollAddress} options={options} />
         )}
 
-        {/* Related Markets */}
-        {!hasVoted && !isEnded && (
-          <div className="bg-[#131a22] backdrop-blur-sm rounded-xl p-5 border border-slate-800/40">
-            <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-emerald-400" />
-              Related Markets
-            </h3>
-            <div className="space-y-2 text-xs text-slate-400">
-              <p>More markets coming soon...</p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

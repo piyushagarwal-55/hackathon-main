@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState, useRef, useMemo } from 'react';
-import { formatNumber } from '@/lib/calculations';
-import { TrendingUp, TrendingDown, ZoomIn, ZoomOut, Maximize2, Download, Clock } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { TrendingUp, ZoomIn, ZoomOut, Maximize2, Download, Clock } from 'lucide-react';
 
 interface MarketChartProps {
   results: readonly bigint[];
@@ -10,71 +9,49 @@ interface MarketChartProps {
   totalVoters: bigint;
 }
 
+const formatNumber = (num: number): string => {
+  if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
+  return num.toFixed(0);
+};
+
 export function MarketChart({ results, options, totalVoters }: MarketChartProps) {
-  const [chartData, setChartData] = useState<any[]>([]);
-  const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; optionIdx: number; value: number } | null>(null);
   const [visibleOptions, setVisibleOptions] = useState<Set<number>>(new Set(options.map((_, i) => i)));
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
   const totalVotes = results.reduce((sum, votes) => sum + Number(votes), 0);
   
-  // Use actual vote data - simple visualization of current state
-  useEffect(() => {
-    const data = results.map((finalVotes, optionIdx) => {
-      const finalPercentage = totalVotes > 0 ? (Number(finalVotes) / totalVotes) * 100 : 0;
-      
-      // Simple data points showing current vote distribution
-      // Could be extended later to show real historical data from events
-      const optionData = [finalPercentage, finalPercentage, finalPercentage];
-      
-      return {
-        option: options[optionIdx],
-        data: optionData,
-        current: finalPercentage,
-        change: 0,
-        high24h: finalPercentage,
-        low24h: finalPercentage,
-        avg: finalPercentage,
-        volatility: 0,
-      };
-    });
-    
-    setChartData(data);
-  }, [results, options, totalVotes]);
+  // Calculate percentages for each option
+  const percentages = results.map(votes => {
+    const voteCount = Number(votes);
+    return totalVotes > 0 ? (voteCount / totalVotes) * 100 : 0;
+  });
 
   const getColor = (index: number) => {
     const colors = [
-      { line: 'rgb(16, 185, 129)', bg: 'rgba(16, 185, 129, 0.15)', hover: 'rgba(16, 185, 129, 0.25)', glow: 'rgba(16, 185, 129, 0.3)' },
-      { line: 'rgb(239, 68, 68)', bg: 'rgba(239, 68, 68, 0.15)', hover: 'rgba(239, 68, 68, 0.25)', glow: 'rgba(239, 68, 68, 0.3)' },
-      { line: 'rgb(251, 191, 36)', bg: 'rgba(251, 191, 36, 0.15)', hover: 'rgba(251, 191, 36, 0.25)', glow: 'rgba(251, 191, 36, 0.3)' },
-      { line: 'rgb(59, 130, 246)', bg: 'rgba(59, 130, 246, 0.15)', hover: 'rgba(59, 130, 246, 0.25)', glow: 'rgba(59, 130, 246, 0.3)' },
+      { line: 'rgb(16, 185, 129)', glow: 'rgba(16, 185, 129, 0.3)', area: 'rgba(16, 185, 129, 0.1)' },
+      { line: 'rgb(239, 68, 68)', glow: 'rgba(239, 68, 68, 0.3)', area: 'rgba(239, 68, 68, 0.1)' },
+      { line: 'rgb(251, 191, 36)', glow: 'rgba(251, 191, 36, 0.3)', area: 'rgba(251, 191, 36, 0.1)' },
+      { line: 'rgb(59, 130, 246)', glow: 'rgba(59, 130, 246, 0.3)', area: 'rgba(59, 130, 246, 0.1)' },
     ];
     return colors[index % colors.length];
   };
 
-  // Generate smooth bezier curve path
-  const generateSmoothPath = (points: number[]) => {
-    if (points.length < 2) return '';
+  // Generate chart data points (30 points for smooth visualization)
+  const generateDataPoints = (currentPercentage: number) => {
+    const points = 30;
+    const data = [];
     
-    const svgPoints = points.map((value, i) => ({
-      x: (i / (points.length - 1)) * 100,
-      y: 100 - value
-    }));
-
-    let path = `M ${svgPoints[0].x},${svgPoints[0].y}`;
-    
-    for (let i = 0; i < svgPoints.length - 1; i++) {
-      const current = svgPoints[i];
-      const next = svgPoints[i + 1];
-      const controlPointX = (current.x + next.x) / 2;
-      
-      path += ` Q ${controlPointX},${current.y} ${controlPointX},${(current.y + next.y) / 2}`;
-      path += ` Q ${controlPointX},${next.y} ${next.x},${next.y}`;
+    for (let i = 0; i < points; i++) {
+      // Create a simple line that stays at current percentage
+      // In real app, this would be historical data from blockchain events
+      data.push(currentPercentage);
     }
     
-    return path;
+    return data;
   };
 
   // Download chart as image
@@ -114,6 +91,10 @@ export function MarketChart({ results, options, totalVoters }: MarketChartProps)
     });
   };
 
+  const chartWidth = 800;
+  const chartHeight = 300;
+  const padding = 40;
+
   return (
     <div className="space-y-6">
       {/* Chart Area */}
@@ -126,9 +107,10 @@ export function MarketChart({ results, options, totalVoters }: MarketChartProps)
               Market Activity
             </h3>
             <div className="flex gap-3 flex-wrap">
-              {chartData.map((item, idx) => {
+              {options.map((option, idx) => {
                 const color = getColor(idx);
                 const isVisible = visibleOptions.has(idx);
+                const percentage = percentages[idx];
                 return (
                   <button
                     key={idx}
@@ -147,10 +129,10 @@ export function MarketChart({ results, options, totalVoters }: MarketChartProps)
                       }}
                     />
                     <span className={`text-xs font-medium ${isVisible ? 'text-white' : 'text-slate-500'}`}>
-                      {item.option}
+                      {option}
                     </span>
                     <span className={`text-xs font-bold ${isVisible ? 'text-emerald-400' : 'text-slate-600'}`}>
-                      {item.current.toFixed(1)}%
+                      {percentage.toFixed(1)}%
                     </span>
                   </button>
                 );
@@ -191,196 +173,136 @@ export function MarketChart({ results, options, totalVoters }: MarketChartProps)
           </div>
         </div>
 
-        {/* Enhanced SVG Line Chart */}
-        <div className="relative w-full overflow-x-auto" style={{ height: '400px' }}>
+        {/* SVG Line Chart */}
+        <div className="relative w-full overflow-hidden bg-slate-900/30 rounded-lg" style={{ height: '400px' }}>
           <svg 
             ref={svgRef}
-            width="100%" 
-            height="100%" 
-            className="overflow-visible"
-            style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'top left' }}
-            onMouseMove={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              const x = ((e.clientX - rect.left) / rect.width) * 100;
-              const y = ((e.clientY - rect.top) / rect.height) * 100;
-              // Find closest point for tooltip
-              const pointIndex = Math.round((x / 100) * 29); // 30 points - 1
-              chartData.forEach((item, idx) => {
-                if (visibleOptions.has(idx) && item.data[pointIndex] !== undefined) {
-                  setHoveredPoint({ x: e.clientX - rect.left, y: e.clientY - rect.top, optionIdx: idx, value: item.data[pointIndex] });
-                }
-              });
-            }}
-            onMouseLeave={() => setHoveredPoint(null)}
+            viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+            className="w-full h-full"
+            style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}
           >
-            {/* Gradient Definitions */}
             <defs>
-              {chartData.map((_, idx) => {
+              {options.map((_, idx) => {
                 const color = getColor(idx);
                 return (
                   <linearGradient key={`grad-${idx}`} id={`gradient-${idx}`} x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" style={{ stopColor: color.line, stopOpacity: 0.4 }} />
+                    <stop offset="0%" style={{ stopColor: color.line, stopOpacity: 0.3 }} />
                     <stop offset="100%" style={{ stopColor: color.line, stopOpacity: 0 }} />
                   </linearGradient>
                 );
               })}
-              {/* Glow filter for lines */}
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                <feMerge>
-                  <feMergeNode in="coloredBlur"/>
-                  <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-              </filter>
             </defs>
 
-            {/* Grid lines with enhanced styling */}
-            {[0, 25, 50, 75, 100].map((y) => (
-              <g key={y}>
+            {/* Grid lines */}
+            {[0, 25, 50, 75, 100].map((y) => {
+              const yPos = padding + (chartHeight - 2 * padding) * (1 - y / 100);
+              return (
+                <g key={y}>
+                  <line
+                    x1={padding}
+                    y1={yPos}
+                    x2={chartWidth - padding}
+                    y2={yPos}
+                    stroke="rgb(51, 65, 85)"
+                    strokeWidth="1"
+                    strokeDasharray="4 4"
+                    opacity={y === 50 ? "0.5" : "0.3"}
+                  />
+                  <text
+                    x={padding - 10}
+                    y={yPos}
+                    fill="rgb(148, 163, 184)"
+                    fontSize="12"
+                    textAnchor="end"
+                    dominantBaseline="middle"
+                  >
+                    {y}%
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Vertical grid lines */}
+            {[0, 25, 50, 75, 100].map((x) => {
+              const xPos = padding + (chartWidth - 2 * padding) * (x / 100);
+              return (
                 <line
-                  x1="0"
-                  y1={`${100 - y}%`}
-                  x2="100%"
-                  y2={`${100 - y}%`}
+                  key={`v-${x}`}
+                  x1={xPos}
+                  y1={padding}
+                  x2={xPos}
+                  y2={chartHeight - padding}
                   stroke="rgb(51, 65, 85)"
                   strokeWidth="1"
                   strokeDasharray="4 4"
-                  opacity={y === 50 ? "0.5" : "0.2"}
+                  opacity="0.2"
                 />
-                <text
-                  x="2"
-                  y={`${100 - y}%`}
-                  fill="rgb(148, 163, 184)"
-                  fontSize="11"
-                  dy="-6"
-                  fontWeight={y === 50 ? "600" : "400"}
-                >
-                  {y}%
-                </text>
-              </g>
-            ))}
+              );
+            })}
 
-            {/* Vertical time markers */}
-            {[0, 25, 50, 75, 100].map((x) => (
-              <line
-                key={`v-${x}`}
-                x1={`${x}%`}
-                y1="0"
-                x2={`${x}%`}
-                y2="100%"
-                stroke="rgb(51, 65, 85)"
-                strokeWidth="1"
-                strokeDasharray="4 4"
-                opacity="0.15"
-              />
-            ))}
-
-            {/* Enhanced lines with smooth curves for each visible option */}
-            {chartData.map((item, optionIdx) => {
+            {/* Draw lines for each option */}
+            {options.map((option, optionIdx) => {
               if (!visibleOptions.has(optionIdx)) return null;
               
               const color = getColor(optionIdx);
-              const smoothPath = generateSmoothPath(item.data);
-              const areaPath = `${smoothPath} L 100,100 L 0,100 Z`;
+              const percentage = percentages[optionIdx];
+              const dataPoints = generateDataPoints(percentage);
+              
+              // Generate path for line
+              const pathData = dataPoints.map((value, i) => {
+                const x = padding + (chartWidth - 2 * padding) * (i / (dataPoints.length - 1));
+                const y = padding + (chartHeight - 2 * padding) * (1 - value / 100);
+                return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+              }).join(' ');
+
+              // Generate area path
+              const areaPath = pathData + 
+                ` L ${chartWidth - padding} ${chartHeight - padding}` +
+                ` L ${padding} ${chartHeight - padding} Z`;
 
               return (
-                <g key={optionIdx} className="transition-all duration-300">
-                  {/* Area fill with gradient */}
+                <g key={optionIdx}>
+                  {/* Area fill */}
                   <path
                     d={areaPath}
                     fill={`url(#gradient-${optionIdx})`}
-                    opacity="0.3"
-                    className="transition-opacity duration-300"
+                    opacity="0.4"
                   />
-                  {/* Smooth curved line with glow effect */}
+                  
+                  {/* Line */}
                   <path
-                    d={smoothPath}
+                    d={pathData}
                     fill="none"
                     stroke={color.line}
-                    strokeWidth="3"
+                    strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    filter="url(#glow)"
-                    className="transition-all duration-300"
                   />
-                  {/* High/Low markers */}
+                  
+                  {/* Current point */}
                   <circle
-                    cx={`${(item.data.indexOf(item.high24h) / (item.data.length - 1)) * 100}%`}
-                    cy={`${100 - item.high24h}%`}
-                    r="3"
-                    fill={color.line}
-                    opacity="0.6"
-                  />
-                  <circle
-                    cx={`${(item.data.indexOf(item.low24h) / (item.data.length - 1)) * 100}%`}
-                    cy={`${100 - item.low24h}%`}
-                    r="3"
-                    fill={color.line}
-                    opacity="0.6"
-                  />
-                  {/* Current price point with pulse animation */}
-                  <circle
-                    cx="100%"
-                    cy={`${100 - item.current}%`}
+                    cx={chartWidth - padding}
+                    cy={padding + (chartHeight - 2 * padding) * (1 - percentage / 100)}
                     r="5"
                     fill={color.line}
                     stroke="rgb(15, 23, 42)"
                     strokeWidth="2"
-                    className="animate-pulse"
-                  />
-                  <circle
-                    cx="100%"
-                    cy={`${100 - item.current}%`}
-                    r="8"
-                    fill="none"
-                    stroke={color.line}
-                    strokeWidth="2"
-                    opacity="0.3"
-                  />
+                  >
+                    <animate
+                      attributeName="r"
+                      values="5;7;5"
+                      dur="2s"
+                      repeatCount="indefinite"
+                    />
+                  </circle>
                 </g>
               );
             })}
-            {/* Interactive Tooltip */}
-            {hoveredPoint && (
-              <g>
-                <line
-                  x1={(hoveredPoint.x / containerRef.current?.clientWidth! * 100) + "%"}
-                  y1="0"
-                  x2={(hoveredPoint.x / containerRef.current?.clientWidth! * 100) + "%"}
-                  y2="100%"
-                  stroke="rgb(148, 163, 184)"
-                  strokeWidth="1"
-                  strokeDasharray="2 2"
-                  opacity="0.5"
-                />
-              </g>
-            )}
           </svg>
-
-          {/* Floating Tooltip */}
-          {hoveredPoint && (
-            <div
-              className="absolute pointer-events-none bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 rounded-lg px-3 py-2 text-xs shadow-xl z-50"
-              style={{
-                left: `${hoveredPoint.x + 10}px`,
-                top: `${hoveredPoint.y - 40}px`,
-              }}
-            >
-              <div className="font-semibold text-white mb-1">
-                {chartData[hoveredPoint.optionIdx]?.option}
-              </div>
-              <div className="text-emerald-400 font-bold">
-                {hoveredPoint.value.toFixed(2)}%
-              </div>
-              <div className="text-slate-500 text-[10px] mt-1">
-                Vol: {formatNumber(hoveredPoint.value * totalVotes / 100)}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Enhanced Time labels */}
-        <div className="flex justify-between text-xs text-slate-500 mt-6 px-2">
+        {/* Time labels */}
+        <div className="flex justify-between text-xs text-slate-500 mt-4 px-2">
           <span className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
             24h ago
@@ -393,16 +315,13 @@ export function MarketChart({ results, options, totalVoters }: MarketChartProps)
         </div>
       </div>
 
-      {/* Enhanced Outcome Cards with Stats */}
+      {/* Outcome Cards */}
       <div className="grid grid-cols-1 gap-3">
         {results.map((votes, idx) => {
           const voteCount = Number(votes);
-          const percentage = totalVotes > 0 ? (voteCount / totalVotes) * 100 : 0;
-          const isLeading = voteCount === Math.max(...results.map(Number)) && voteCount > 0;
-          const change = chartData[idx]?.change || 0;
-          const high24h = chartData[idx]?.high24h || percentage;
-          const low24h = chartData[idx]?.low24h || percentage;
-          const volatility = chartData[idx]?.volatility || 0;
+          const percentage = percentages[idx];
+          const maxVotes = Math.max(...results.map(Number));
+          const isLeading = voteCount === maxVotes && voteCount > 0;
           const color = getColor(idx);
           const isVisible = visibleOptions.has(idx);
 
@@ -414,7 +333,7 @@ export function MarketChart({ results, options, totalVoters }: MarketChartProps)
                 isLeading ? 'border-emerald-500/40 shadow-lg shadow-emerald-500/10' : 'border-slate-700/40'
               } ${!isVisible ? 'opacity-50' : ''}`}
             >
-              <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <div 
@@ -431,42 +350,26 @@ export function MarketChart({ results, options, totalVoters }: MarketChartProps)
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-4 mb-3">
-                    <div className="text-3xl font-bold text-white">{percentage.toFixed(1)}%</div>
-                    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg ${
-                      change >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
-                    }`}>
-                      {change >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                      <span className="text-sm font-bold">{change >= 0 ? '+' : ''}{change.toFixed(1)}%</span>
-                    </div>
-                  </div>
                   
-                  {/* Detailed Stats Row */}
+                  <div className="text-3xl font-bold text-white mb-3">{percentage.toFixed(1)}%</div>
+                  
                   <div className="flex items-center gap-4 text-xs">
-                    <div>
-                      <span className="text-slate-500">Volume: </span>
-                      <span className="text-slate-300 font-semibold">${formatNumber(voteCount * 100)}</span>
-                    </div>
-                    <div className="w-px h-3 bg-slate-700"></div>
                     <div>
                       <span className="text-slate-500">Votes: </span>
                       <span className="text-slate-300 font-semibold">{formatNumber(voteCount)}</span>
                     </div>
                     <div className="w-px h-3 bg-slate-700"></div>
                     <div>
-                      <span className="text-slate-500">24h: </span>
-                      <span className="text-emerald-400 font-semibold">{high24h.toFixed(1)}%</span>
-                      <span className="text-slate-600 mx-1">/</span>
-                      <span className="text-red-400 font-semibold">{low24h.toFixed(1)}%</span>
+                      <span className="text-slate-500">Share: </span>
+                      <span className="text-slate-300 font-semibold">{percentage.toFixed(1)}%</span>
                     </div>
                   </div>
                 </div>
                 
-                {/* Progress Bar and Price */}
                 <div className="flex flex-col items-end gap-2 ml-4">
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-white">{percentage.toFixed(0)}¢</div>
-                    <div className="text-xs text-slate-500">per share</div>
+                    <div className="text-2xl font-bold text-white">{percentage.toFixed(0)}%</div>
+                    <div className="text-xs text-slate-500">vote share</div>
                   </div>
                   <div className="w-32 h-3 bg-slate-800/50 rounded-full overflow-hidden border border-slate-700/40">
                     <div
@@ -479,14 +382,6 @@ export function MarketChart({ results, options, totalVoters }: MarketChartProps)
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/20"></div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 text-xs">
-                    <span className="text-slate-500">Volatility:</span>
-                    <span className={`font-semibold ${
-                      volatility > 20 ? 'text-red-400' : volatility > 10 ? 'text-amber-400' : 'text-emerald-400'
-                    }`}>
-                      {volatility.toFixed(1)}%
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -496,4 +391,3 @@ export function MarketChart({ results, options, totalVoters }: MarketChartProps)
     </div>
   );
 }
-
