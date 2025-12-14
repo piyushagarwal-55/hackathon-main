@@ -20,49 +20,24 @@ export function MarketChart({ results, options, totalVoters }: MarketChartProps)
   
   const totalVotes = results.reduce((sum, votes) => sum + Number(votes), 0);
   
-  // Generate enhanced historical data for visualization with smooth transitions
+  // Use actual vote data - simple visualization of current state
   useEffect(() => {
-    const points = 30; // More points for smoother curves
     const data = results.map((finalVotes, optionIdx) => {
-      const finalPercentage = totalVotes > 0 ? (Number(finalVotes) / totalVotes) * 100 : 50;
-      const optionData = [];
+      const finalPercentage = totalVotes > 0 ? (Number(finalVotes) / totalVotes) * 100 : 0;
       
-      // Create more realistic market-like progression
-      const volatility = 8; // Base volatility
-      const startingValue = 50 + (Math.random() - 0.5) * 20; // Random start near 50%
-      let currentValue = startingValue;
-      
-      for (let i = 0; i < points; i++) {
-        const progress = i / (points - 1);
-        
-        // Trend toward final value with decreasing volatility
-        const targetValue = finalPercentage;
-        const trendForce = (targetValue - currentValue) * 0.15; // Stronger trend force
-        const randomWalk = (Math.random() - 0.5) * volatility * (1 - progress * 0.7);
-        
-        currentValue = currentValue + trendForce + randomWalk;
-        currentValue = Math.max(5, Math.min(95, currentValue)); // Keep within bounds
-        
-        optionData.push(currentValue);
-      }
-      
-      // Ensure the last point matches the actual value
-      optionData[points - 1] = finalPercentage;
-      
-      // Calculate stats
-      const maxValue = Math.max(...optionData);
-      const minValue = Math.min(...optionData);
-      const avgValue = optionData.reduce((a, b) => a + b, 0) / optionData.length;
+      // Simple data points showing current vote distribution
+      // Could be extended later to show real historical data from events
+      const optionData = [finalPercentage, finalPercentage, finalPercentage];
       
       return {
         option: options[optionIdx],
         data: optionData,
         current: finalPercentage,
-        change: finalPercentage - startingValue,
-        high24h: maxValue,
-        low24h: minValue,
-        avg: avgValue,
-        volatility: maxValue - minValue,
+        change: 0,
+        high24h: finalPercentage,
+        low24h: finalPercentage,
+        avg: finalPercentage,
+        volatility: 0,
       };
     });
     

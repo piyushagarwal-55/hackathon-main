@@ -802,9 +802,20 @@ export function PolymarketStyleVote({ pollAddress, options, question, onVoteSucc
               <p className="text-slate-400 text-sm mb-4">
                 Your choice: <span className="text-emerald-400 font-semibold">{options[Number(existingVote[0])]}</span>
               </p>
-              <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/40">
-                <p className="text-slate-500 text-xs mb-1">Vote Weight</p>
-                <p className="text-2xl font-bold text-emerald-400">{Number(existingVote[2]).toFixed(2)}</p>
+              <div className="space-y-3">
+                <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/40">
+                  <p className="text-slate-500 text-xs mb-1">Tokens Used</p>
+                  <p className="text-2xl font-bold text-amber-400">{formatUnits(existingVote[3], 18)} REP</p>
+                </div>
+                <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/40">
+                  <p className="text-slate-500 text-xs mb-1">Vote Weight</p>
+                  <p className="text-2xl font-bold text-emerald-400">
+                    {Number(existingVote[2]) > 0 ? Number(existingVote[2]).toFixed(2) : formatUnits(existingVote[3], 18)}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {Number(existingVote[2]) > 0 ? '(Weighted)' : '(Token amount)'}
+                  </p>
+                </div>
               </div>
             </div>
           ) : (
