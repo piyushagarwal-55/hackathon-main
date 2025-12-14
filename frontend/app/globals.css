@@ -1,0 +1,282 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0f1419;
+  --foreground: #e5e7eb;
+  --green-primary: #10b981;
+  --green-secondary: #059669;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f1419;
+    --foreground: #e5e7eb;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: #0f1419;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+@layer components {
+  .rv-container {
+    @apply px-6 sm:px-8 lg:px-12;
+  }
+
+  .rv-card {
+    @apply bg-gradient-to-br from-slate-900/40 to-slate-800/15 backdrop-blur-xl
+      border border-slate-700/50 rounded-2xl;
+  }
+
+  .rv-card-soft {
+    @apply bg-slate-900/30 backdrop-blur-xl border border-slate-700/40 rounded-2xl;
+  }
+
+  .rv-chip {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold
+      bg-slate-900/50 border border-slate-700/50 text-slate-200;
+  }
+
+  .rv-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl font-semibold
+      transition-all disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+
+  .rv-btn-primary {
+    @apply rv-btn px-5 py-2.5 text-white
+      bg-gradient-to-r from-emerald-600 to-teal-600
+      hover:from-emerald-500 hover:to-teal-500
+      shadow-lg shadow-emerald-500/20;
+  }
+
+  .rv-btn-secondary {
+    @apply rv-btn px-5 py-2.5 text-slate-100
+      bg-slate-900/40 border border-slate-700/60
+      hover:bg-slate-800/60 hover:border-slate-600/60;
+  }
+
+  .rv-tabs {
+    @apply inline-flex gap-1.5 bg-slate-900/30 backdrop-blur-xl rounded-xl p-1.5
+      border border-slate-700/50;
+  }
+
+  .rv-tab {
+    @apply px-4 py-2 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:text-white;
+  }
+
+  .rv-tab-active {
+    @apply bg-slate-100/10 border border-slate-700/60 text-white shadow-lg shadow-black/20;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Gradient animations */
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 3s ease infinite;
+  }
+
+  /* Fade in animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  /* Pulse glow animation */
+  @keyframes pulseGlow {
+    0%,
+    100% {
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(99, 102, 241, 0.6);
+    }
+  }
+
+  .animate-pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  /* Shimmer effect */
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite linear;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%
+    );
+    background-size: 1000px 100%;
+  }
+
+  /* Scroll animations */
+  .scroll-fade-in {
+    opacity: 0;
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  /* Confetti animation */
+  @keyframes confettiFall {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  /* Slide in from bottom */
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slideInUp 0.4s ease-out;
+  }
+
+  /* Scale in animation */
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.5);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.8);
+}
+
+/* Mobile Touch Optimizations */
+@media (max-width: 768px) {
+  /* Larger tap targets for mobile */
+  button, a, input[type="button"], input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent text selection on interactive elements */
+  button, .clickable {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+
+  /* Smooth scrolling on mobile */
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Optimize font sizes for mobile readability */
+  body {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Hide scrollbar on mobile for cleaner look */
+  *::-webkit-scrollbar {
+    width: 4px;
+  }
+}
+
+/* Touch-friendly hover states */
+@media (hover: none) {
+  .hover\:scale-\[1\.01\]:hover {
+    transform: scale(1);
+  }
+  
+  .hover\:bg-slate-800\/70:active {
+    background-color: rgba(30, 41, 59, 0.7);
+  }
+}
+
+/* Prevent zoom on double-tap */
+* {
+  touch-action: manipulation;
+}
